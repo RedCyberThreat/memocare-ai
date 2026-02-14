@@ -1,3 +1,4 @@
+import { TelegramStatus } from "@/components/TelegramStatus";
 import DashboardHeader from "@/components/DashboardHeader";
 import DailyCareCard from "@/components/DailyCareCard";
 import ChatPanel from "@/components/ChatPanel";
@@ -19,12 +20,19 @@ const Index = () => {
           {/* Hero: Daily Care Insight */}
           <DailyCareCard />
 
-          {/* Two-column: Chat + Timeline */}
+          {/* Two-column: Chat + Timeline & Bot Status */}
           <div className="grid gap-6 lg:grid-cols-5">
+            {/* Left Column (Main Chat) */}
             <div className="lg:col-span-3">
               <ChatPanel />
             </div>
-            <div className="lg:col-span-2">
+
+            {/* Right Column (Status & Timeline) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Added: Telegram Bot Status Card */}
+              <TelegramStatus />
+              
+              {/* Existing Timeline */}
               <CareTimeline />
             </div>
           </div>
