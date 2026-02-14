@@ -5,6 +5,9 @@ import CareTimeline from "@/components/CareTimeline";
 import MemoryVault from "@/components/MemoryVault";
 import InsightsCard from "@/components/InsightsCard";
 import TrustBadges from "@/components/TrustBadges";
+import CareIntelligence from "@/components/CareIntelligence";
+import AIActivityPanel from "@/components/AIActivityPanel";
+import DemoModeToggle from "@/components/DemoModeToggle";
 
 const Index = () => {
   return (
@@ -26,16 +29,22 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Two-column: Memory Vault + Insights */}
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* Three-column: Memory Vault + Insights + Intelligence */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <MemoryVault />
             <InsightsCard />
+            <CareIntelligence />
           </div>
+
+          {/* AI Activity */}
+          <AIActivityPanel />
 
           {/* Trust indicators */}
           <TrustBadges />
         </main>
       </div>
+
+      <DemoModeToggle />
     </div>
   );
 };

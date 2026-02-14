@@ -49,6 +49,7 @@
     --care-lavender: 240 40% 95%;
     --care-peach: 15 60% 94%;
     --care-shadow: 210 40% 80%;
+    --care-glow: 333 71% 80%;
 
     --sidebar-background: 210 50% 97%;
     --sidebar-foreground: 240 5% 10%;
@@ -62,41 +63,27 @@
     font-family: 'Nunito', 'Inter', sans-serif;
 
     --chart-1: 328 85% 70%;
-
     --chart-2: 351 94% 71%;
-
     --chart-3: 327 87% 81%;
-
     --chart-4: 352 95% 81%;
-
     --chart-5: 240 3% 46%;
 
     --sidebar: 0 0% 98%;
 
     --font-sans: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-
     --font-serif: 'Merriweather', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-
     --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
     --tracking-normal: 0em;
-
     --spacing: 0.25rem;
   }
   .dark {
@@ -119,6 +106,7 @@
     --border: 240 5% 33%;
     --input: 240 5% 33%;
     --ring: 328 85% 70%;
+    --care-glow: 328 85% 40%;
     --chart-1: 327 87% 81%;
     --chart-2: 352 95% 81%;
     --chart-3: 328 85% 70%;
@@ -163,16 +151,30 @@
 
 @layer utilities {
   .care-card {
-    @apply bg-card rounded-2xl shadow-sm border border-border p-6 transition-shadow duration-300;
+    @apply bg-card rounded-2xl shadow-sm border border-border p-6 transition-all duration-300;
+    backdrop-filter: blur(12px);
+    background: hsl(var(--card) / 0.85);
   }
   .care-card:hover {
     box-shadow: 0 8px 30px -12px hsl(var(--care-shadow) / 0.4);
+    transform: translateY(-2px);
   }
   .care-badge {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
   }
   .pulse-gentle {
     animation: pulseGentle 3s ease-in-out infinite;
+  }
+  .glass-card {
+    backdrop-filter: blur(16px) saturate(1.8);
+    background: hsl(var(--card) / 0.7);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+  .glow-border {
+    box-shadow: 0 0 15px -3px hsl(var(--care-glow) / 0.3), 0 0 6px -2px hsl(var(--care-glow) / 0.2);
+  }
+  .glow-border-active {
+    animation: glowPulse 3s ease-in-out infinite;
   }
 }
 
@@ -181,9 +183,40 @@
   50% { opacity: 0.7; }
 }
 
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px -3px hsl(var(--care-glow) / 0.2); }
+  50% { box-shadow: 0 0 25px -3px hsl(var(--care-glow) / 0.4); }
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes radialProgress {
+  from { stroke-dashoffset: var(--circumference); }
+  to { stroke-dashoffset: var(--target-offset); }
+}
+
+@keyframes waveform {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+@keyframes floatLight {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  33% { transform: translate(30px, -20px) scale(1.1); opacity: 0.5; }
+  66% { transform: translate(-20px, 10px) scale(0.9); opacity: 0.3; }
+}
+
+@keyframes typeReveal {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
 .animate-fade-in-up {
@@ -203,4 +236,20 @@
 .animate-fade-in-up-delay-3 {
   animation: fadeInUp 0.5s ease-out 0.3s forwards;
   opacity: 0;
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+.animate-float-light {
+  animation: floatLight 8s ease-in-out infinite;
+}
+
+.animate-waveform {
+  animation: waveform 0.8s ease-in-out infinite;
+}
+
+.radial-progress-animate {
+  animation: radialProgress 1.5s ease-out forwards;
 }
