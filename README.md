@@ -7,7 +7,7 @@
 ### 🌐 Live Links
 * **Web Dashboard**: [memocare-ai.vercel.app](https://memocare-ai.vercel.app/)
 * **Telegram Bot**: [@AlzheimerSupportBot](https://t.me/AlzheimerSupportBot)
-* **Demo Video**: [MemoCare AI Presentation and Demo Video]
+* **Demo Video**: [MemoCare AI Presentation and Demo Video](https://youtu.be/TsqaNgPDt-Y)
 * **Executive Summary**: [Executive Summary](https://docs.google.com/presentation/d/1WY_spUKc4dvKvnGEk-61jMf9XTBIkDt-oD0rvvFLmPM/edit?slide=id.g393f1639d98_1_2#slide=id.g393f1639d98_1_2)
 * **LM Notebook**: [Interactive Notebook](https://notebooklm.google.com/notebook/c2b6e3f9-f46d-4eac-b873-687de8411f49)
 
