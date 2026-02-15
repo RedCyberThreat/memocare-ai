@@ -33,7 +33,7 @@ const DailyCareCard = () => {
               AI-Generated
             </span>
             <span className="care-badge bg-care-green-light text-secondary-foreground">
-              <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+              <span className="w-2 h-2 rounded-full bg-accent inline-block font-semibold text-green-700" />
               Updated today
             </span>
           </div>
