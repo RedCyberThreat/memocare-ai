@@ -1,70 +1,67 @@
-# **Memocare AI: Sherpa Digital Companion**
+# ***MemoCare AI: The Cognitive Support Infrastructure***
 
-Memocare AI is a cross-platform digital assistant designed to provide empathetic, source-backed support for Alzheimer's patients and their caregivers. The system, named **"Sherpa"**, operates through a synchronized web interface and a Telegram bot, offering real-time guidance based on specialized Alzheimer's care protocols.
+*"Transforming fragmented clinical knowledge into a trusted, accessible lifeline for Alzheimer's caregivers."*
 
-## **🚀 Overview**
+*Memocare AI is an evidence-first, AI-powered agent designed to bridge the **Information-to-Action Gap** in dementia care. Named **"Sherpa"**, the system provides 24/7 clinical guidance and emotional support through a synchronized Web and Telegram interface.*
 
-The project leverages a **Retrieval-Augmented Generation (RAG)** architecture to ensure that every response is grounded in verified medical and caregiving contexts. It features a "silent analysis" system that monitors user stress levels and sentiment to adapt its tone and prioritize urgent needs.
+### 🌐 Live Links
+* **Web Dashboard**: [memocare-ai.vercel.app](https://memocare-ai.vercel.app/)
+* **Telegram Bot**: [@AlzheimerSupportBot](https://t.me/AlzheimerSupportBot)
+* **Demo Video**: [Link to your backup video]
 
-## **🛠 Tech Stack**
+## ***🧠 The Problem***
 
-* **Frontend**: React (Vite), Tailwind CSS, Shadcn UI.  
-* **Backend**: Supabase Edge Functions (Deno).  
-* **AI Engine**:  
-  * **OpenAI GPT-4o-mini**: Core reasoning and response generation.  
-  * **OpenAI Embeddings**: Semantic search capabilities.  
-  * **Cohere Rerank**: Multilingual re-ranking for high-precision context retrieval.  
-  * **Whisper & TTS**: Speech-to-text and text-to-speech for voice-based interaction.  
-* **Telegram Bot**: Built with the GrammY framework.  
-* **Database**: Supabase (PostgreSQL) with pgvector for hybrid search and analytics storage.
+* ***The Support Gap**: 55M+ people live with dementia globally, with 80% of care falling on unpaid, untrained family members.*  
+* ***The Financial Strain**: Families assume 86% of costs, averaging **€42,000/year**.*  
+* ***The Information Gap**: Caregivers face "Dr. Google" hallucinations or "Clinical Silence" during midnight crises.*
 
-## **✨ Key Features**
+## ***🛠 Proprietary Architecture: "The Five Pillars"***
 
-* **Multi-Platform Sync**: Users can switch between the web application and Telegram without losing context.  
-* **Empathetic RAG**: Responses are strictly limited to provided care contexts to prevent hallucinations, delivered with a patient and calm tone.  
-* **Voice Interaction**: Full support for voice messages on Telegram with automated transcription and voice replies.  
-* **Emotional Intelligence**: Every interaction triggers a hidden stress and sentiment analysis saved to a dashboard for caregiver monitoring.  
-* **Multilingual Support**: Automatically detects and responds in the user's language (Spanish, Catalan, Italian, English).
+*Our RAG (Retrieval-Augmented Generation) pipeline is built on five specialized technical modules:*
 
-## **📂 Project Structure**
+1. ***The Ingestor**: Curates authoritative data from sources like the **Fundació Pasqual Maragall**.*  
+2. ***Hybrid Eye**: Uses OpenAI Embeddings and `pgvector` for multi-dimensional semantic search.*  
+3. ***The Judge**: Employs **Cohere Rerank** to filter noise and ensure only the top 3 relevant facts reach the model.*  
+4. ***The Polyglot**: Real-time multilingual support across Spanish, Catalan, Italian, and English.*  
+5. ***The Memory**: A sliding window context that maintains the last 6 turns of conversation for seamless interaction.*
 
-* /src: React frontend application.  
-* /supabase/functions/telegram-bot:  
-  * index.ts: The main "switchboard" handling Webhooks and Web-chat requests.  
-  * rag\_service.ts: The logic for embeddings, hybrid retrieval, re-ranking, and TTS.  
-  * prompt.ts: The specialized system prompt defining "Sherpa's" behavior and analysis rules.
+## ***✨ Key Features***
 
-## **⚙️ Setup & Deployment**
+* ***Silent Analysis**: Automatically monitors user sentiment and stress on a scale of 1-10 to adapt Sherpa's response tone.*  
+* ***Voice-First Care**: Integrated ElevenLabs TTS and Whisper STT for elderly patients who prefer speaking over typing.*  
+* ***Caregiver Dashboard**: A web-based interface for adult children to monitor the stress levels and needs of both the patient and the primary caregiver.*  
+* ***Clinical Authority**: Every response is grounded in clinical truth, citing exact URLs to prevent AI hallucinations.*
 
-### **Environment Variables**
+## ***📂 Project Structure***
 
-The following secrets must be configured in your .env (Local) and Supabase Secrets (Cloud):
+* *`/src`: React frontend (The Caregiver Dashboard).*  
+* *`/supabase/functions/telegram-bot`:*  
+  * *`index.ts`: Edge function handling the multi-platform "Switchboard."*  
+  * *`rag_service.ts`: The RAG engine (Embeddings \+ Rerank \+ TTS).*  
+  * *`prompt.ts`: The specialized "Sherpa" persona and safety protocols.*
 
-* OPENAI\_API\_KEY: For GPT-4o-mini and Whisper.  
-* COHERE\_API\_KEY: For multilingual re-ranking.  
-* TELEGRAM\_BOT\_TOKEN: Provided by @BotFather.  
-* TELEGRAM\_WEBHOOK\_SECRET: A custom secret to secure your endpoint.
+## ***🚀 12-Month Roadmap***
 
-### **Backend Deployment**
+* ***Months 0-6 (Validation)**: Launch B2C in Spain/Catalonia; reach 1,000 active users.*  
+* ***Months 6-12 (Expansion)**: Launch Caregiver Dashboard Beta and secure 2-3 Institutional Pilots (B2B).*  
+* ***Phase 3 (Scale)**: Integration with public health systems for reimbursement models (B2G).*
 
-Deploy the AI brain to Supabase Edge Functions:
+## ***⚙️ Setup & Deployment***
 
-PowerShell
+### ***Environment Variables***
 
-npx supabase functions deploy telegram\-bot \-\-no-verify-jwt
+*Configure these in your `.env` and Supabase Secrets:*
 
-### **Frontend Deployment**
+* *`OPENAI_API_KEY`: Core LLM & Embeddings.*  
+* *`COHERE_API_KEY`: Context re-ranking.*  
+* *`TELEGRAM_BOT_TOKEN`: Bot authentication.*  
+* *`TELEGRAM_WEBHOOK_SECRET`: Secure endpoint verification.*
 
-The frontend is optimized for **Vercel**. Ensure VITE\_SUPABASE\_URL and VITE\_SUPABASE\_ANON\_KEY are set in the Vercel dashboard.
+### ***Deployment***
 
-## **🤝 Care Protocols**
-
-Sherpa is trained to follow strict constraints:
-
-* Use **only** information found in the retrieved context.  
-* Cite exact source URLs for transparency.  
-* Adapt tone for stressed caregivers (more friendly) vs. patient interactions (simpler sentences).
+* ***Backend**: `npx supabase functions deploy telegram-bot --no-verify-jwt`*  
+* ***Frontend**: Optimized for Vercel deployment with Vite.*
 
 ---
 
-*Developed for the Alzheimer's Care Hackathon.*
+*Developed by Team Snack Underflow for the OPIT Hackathon 2026\.*
