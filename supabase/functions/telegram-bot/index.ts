@@ -11,75 +11,28 @@ import {
 import { OpenAI } from "npm:openai";
 import { askSherpa, generateVoice, saveAnalytics } from "./rag_service.ts";
 
-// 1. Updated Session Data
+// --- Types & Config ---
 interface SessionData {
   history: { role: "user" | "assistant"; content: string }[];
-  preference?: "text" | "voice"; // New field
+  preference?: "text" | "voice";
 }
 type MyContext = Context & SessionFlavor<SessionData>;
 
-const bot = new Bot<MyContext>(Deno.env.get("TELEGRAM_BOT_TOKEN")!);
-const openai = new OpenAI({ apiKey: Deno.env.get("OPENAI_API_KEY") });
+const bot = new Bot<MyContext>(Deno.env.get("TELEGRAM_BOT_TOKEN") || "");
+const openai = new OpenAI({ apiKey: Deno.env.get("OPENAI_API_KEY") || "" });
+
+// CORS HEADERS for web chat
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 bot.use(session({ initial: () => ({ history: [] }) }));
 
-/**
- * handleFlow: Now respects the user's preference for voice/text
- */
-async function handleFlow(ctx: MyContext, text: string) {
-  const userId = ctx.from?.id.toString() || "unknown";
-
-  // Always show "typing" or "recording" so the user knows Sherpa is working
-  if (ctx.session.preference === "voice") {
-    await ctx.replyWithChatAction("record_voice");
-  } else {
-    await ctx.replyWithChatAction("typing");
-  }
-
-  try {
-    ctx.session.history.push({ role: "user", content: text });
-    if (ctx.session.history.length > 6)
-      ctx.session.history = ctx.session.history.slice(-6);
-
-    // 1. Get Brain Response + Stress Analysis
-    const result = await askSherpa(ctx.session.history);
-    const { answer, analysis } = result;
-
-    // 2. Persistence (Non-blocking)
-    saveAnalytics(userId, analysis.stress_score, analysis.sentiment).catch(
-      console.error,
-    );
-
-    // 3. Conditional Output Logic
-    if (ctx.session.preference === "voice") {
-      // VOICE MODE: Only send the audio
-      console.log(`[Bot] 🎙️ Voice Mode: Skipping text, generating audio...`);
-      try {
-        const audioBuffer = await generateVoice(answer);
-        await ctx.replyWithVoice(
-          new InputFile(audioBuffer, "sherpa_voice.mp3"),
-        );
-      } catch (e) {
-        console.error("TTS Failed:", e);
-        // Fallback: If audio fails, send text so the user isn't left in silence
-        await ctx.reply(answer);
-      }
-    } else {
-      // TEXT MODE: Only send the text
-      await ctx.reply(answer);
-    }
-
-    // 4. Update History (Assistant content)
-    ctx.session.history.push({ role: "assistant", content: answer });
-  } catch (err) {
-    console.error("Flow Error:", err);
-    await ctx.reply("Lo siento, he tenido un pequeño error.");
-  }
-}
-
 // --- COMMANDS & HANDLERS ---
 
-bot.command("start", (ctx) => {
+bot.command("start", async (ctx: MyContext) => {
   ctx.session.history = [];
 
   const welcomeText = `
@@ -96,20 +49,18 @@ Come preferisci comunicare oggi?
 How would you like to communicate today?
 `;
 
-  // Botons amb etiquetes multilingües per a la màxima claredat
   const keyboard = new InlineKeyboard()
     .text("✍️ Texto / Text / Testo", "pref_text")
-    .row() // Posa el següent botó a una fila nova
+    .row()
     .text("🎙️ Voz / Veu / Voce / Voice", "pref_voice");
 
-  ctx.reply(welcomeText, { parse_mode: "Markdown", reply_markup: keyboard });
+  await ctx.reply(welcomeText, { parse_mode: "Markdown", reply_markup: keyboard });
 });
 
-bot.callbackQuery(/^pref_/, async (ctx) => {
+bot.callbackQuery(/^pref_/, async (ctx: MyContext) => {
   const choice = ctx.callbackQuery.data === "pref_voice" ? "voice" : "text";
   ctx.session.preference = choice;
 
-  // Resposta de confirmació multilingüe curta
   const confirmation =
     choice === "voice"
       ? "🎙️ OK! (Voice Mode / Modo Voz / Modo Veu)"
@@ -119,24 +70,66 @@ bot.callbackQuery(/^pref_/, async (ctx) => {
   await ctx.reply(confirmation);
 });
 
-// Handle the button clicks
-bot.callbackQuery(/^pref_/, async (ctx) => {
-  const choice = ctx.callbackQuery.data === "pref_voice" ? "voice" : "text";
-  ctx.session.preference = choice;
+/**
+ * handleFlow: Respects user's preference for voice/text
+ */
+async function handleFlow(ctx: MyContext, text: string): Promise<void> {
+  const userId = ctx.from?.id.toString() || "unknown";
 
-  const confirmation =
-    choice === "voice"
-      ? "✅ Modo Voz activado. Te responderé con notas de audio."
-      : "✅ Modo Texto activado. Me comunicaré contigo por escrito.";
+  // Show "typing" or "recording" action
+  if (ctx.session.preference === "voice") {
+    await ctx.replyWithChatAction("record_voice");
+  } else {
+    await ctx.replyWithChatAction("typing");
+  }
 
-  await ctx.answerCallbackQuery();
-  await ctx.reply(confirmation);
+  try {
+    ctx.session.history.push({ role: "user", content: text });
+    if (ctx.session.history.length > 6) {
+      ctx.session.history = ctx.session.history.slice(-6);
+    }
+
+    // Get AI response + stress analysis
+    const result = await askSherpa(ctx.session.history);
+    const { answer, analysis } = result;
+
+    // Save analytics (non-blocking)
+    saveAnalytics(userId, analysis.stress_score, analysis.sentiment).catch(
+      console.error,
+    );
+
+    // Conditional output based on preference
+    if (ctx.session.preference === "voice") {
+      console.log(`[Bot] 🎙️ Voice Mode: Generating audio...`);
+      try {
+        const audioBuffer = await generateVoice(answer);
+        await ctx.replyWithVoice(
+          new InputFile(audioBuffer, "sherpa_voice.mp3"),
+        );
+      } catch (e) {
+        console.error("TTS Failed:", e);
+        // Fallback to text if audio fails
+        await ctx.reply(answer);
+      }
+    } else {
+      // TEXT MODE
+      await ctx.reply(answer);
+    }
+
+    // Update history
+    ctx.session.history.push({ role: "assistant", content: answer });
+  } catch (err) {
+    console.error("Flow Error:", err);
+    await ctx.reply("Lo siento, he tenido un pequeño error.");
+  }
+}
+
+bot.on("message:text", async (ctx: MyContext) => {
+  await handleFlow(ctx, ctx.message.text);
 });
 
-bot.on("message:text", (ctx) => handleFlow(ctx, ctx.message.text));
-
-bot.on("message:voice", async (ctx) => {
-  // If they send a voice note, we assume they want to hear a voice back!
+bot.on("message:voice", async (ctx: MyContext) => {
+  // If they send a voice note, assume they want voice responses
   if (!ctx.session.preference) ctx.session.preference = "voice";
 
   const file = await ctx.getFile();
@@ -152,17 +145,71 @@ bot.on("message:voice", async (ctx) => {
   await handleFlow(ctx, transcription.text);
 });
 
+// --- Shared Logic for Web Chat ---
+async function getSherpaLogic(
+  text: string, 
+  history: Array<{ role: "user" | "assistant"; content: string }>, 
+  userId: string
+) {
+  const currentHistory = [...history, { role: "user", content: text }].slice(-6);
+  const result = await askSherpa(currentHistory);
+  const { answer, analysis } = result;
+  saveAnalytics(userId, analysis.stress_score, analysis.sentiment).catch(console.error);
+  return { 
+    answer, 
+    analysis, 
+    updatedHistory: [...currentHistory, { role: "assistant", content: answer }] 
+  };
+}
+
 // --- Server Setup ---
 const handleUpdate = webhookCallback(bot, "std/http", {
   timeoutMilliseconds: 60000,
 });
 
-serve(async (req) => {
-  const url = new URL(req.url);
-  if (
-    url.searchParams.get("secret") !== Deno.env.get("TELEGRAM_WEBHOOK_SECRET")
-  ) {
-    return new Response("Unauthorized", { status: 401 });
+serve(async (req: Request) => {
+  // PREFLIGHT HANDLER for CORS
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
-  return await handleUpdate(req);
+
+  try {
+    const clonedReq = req.clone();
+    const body = await req.json();
+
+    // WEB CHAT LOGIC
+    if (body.isWebChat) {
+      const { answer, analysis } = await getSherpaLogic(
+        body.message.text, 
+        body.history || [], 
+        "web-user"
+      );
+
+      return new Response(
+        JSON.stringify({ reply: answer, analysis }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // TELEGRAM LOGIC (with webhook secret check)
+    const url = new URL(req.url);
+    if (
+      url.searchParams.get("secret") !== Deno.env.get("TELEGRAM_WEBHOOK_SECRET")
+    ) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    return await handleUpdate(clonedReq);
+
+  } catch (err: unknown) {
+    console.error("Server Error:", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    return new Response(
+      JSON.stringify({ error: errorMessage }), 
+      { 
+        status: 200, // Return 200 for CORS
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      }
+    );
+  }
 });
